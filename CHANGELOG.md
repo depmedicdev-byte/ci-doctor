@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.2 - 2026-04-27
+
+- Companion in-browser audit page at
+  https://depmedicdev-byte.github.io/audit.html. Same rule engine bundled
+  for the browser. Useful for sharing a finding without telling someone
+  to `npx`. README updated to point at it.
+
 ## 0.3.1 - 2026-04-27
 
 - Text reporter ends with a contextual next-step block: counts cost-class
