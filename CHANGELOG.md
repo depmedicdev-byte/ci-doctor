@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.3 - 2026-04-27
+
+- README ships an animated terminal demo (svg) so the GitHub page shows
+  the tool running live, not a static code block.
+- Markdown reporter footer now also points to the new
+  [`gha-budget`](https://www.npmjs.com/package/gha-budget) free CLI for
+  putting a dollar figure on each job. ci-doctor finds the issues,
+  gha-budget tells you what each one costs.
+
 ## 0.1.2 - 2026-04-27
 
 - Add `--demo` flag. Runs ci-doctor against the bundled
