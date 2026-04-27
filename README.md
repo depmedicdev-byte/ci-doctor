@@ -5,25 +5,37 @@ GitHub Action. Posts a comment on every PR with a table of findings and
 fix-it suggestions.
 
 ```text
-$ npx ci-doctor
+$ npx ci-doctor examples/bad-workflow
 
-ci-doctor  2026-04-27T03:52:14.000Z
-
-Found 4 finding(s)  [error 1  warn 2  info 1]
+Found 7 finding(s)  [error 1  warn 4  info 2]
 
 .github/workflows/ci.yml
-  ERROR  6:7  deprecated-action
+  ERROR  7:15  deprecated-action
          actions/checkout@v3 is on a deprecated major. Latest stable: v4.
          | actions/checkout@v4
-  WARN   12:5 missing-cache
+  WARN   8:15  missing-cache
          actions/setup-node has no cache option. Add 'with: cache: <ecosystem>' to skip dep re-downloads. Saves 30-90 seconds per run.
          | with:
          |   cache: npm   # or pip, gradle, maven, go, etc.
-  WARN   1:1  missing-concurrency
+  WARN   2:5   missing-concurrency
          No top-level concurrency block. New pushes will not cancel in-flight runs of stale commits, doubling spend on rapid-push branches.
-  INFO   1:1  wide-trigger
+         | concurrency:
+         |   group: ${{ github.workflow }}-${{ github.ref }}
+         |   cancel-in-progress: true
+  WARN   5:5   missing-timeout
+         Job 'build' has no timeout-minutes. Default is 360 (6h). A hung job can drain your CI budget.
+         | timeout-minutes: 15   # tune to your job; cap below the default 360.
+  WARN   1:7   missing-permissions
+         No top-level permissions block. GITHUB_TOKEN inherits the repo default, often write-all. Set least-privilege explicitly.
+         | permissions:
+         |   contents: read   # add other scopes only as jobs need them.
+  INFO   2:5   wide-trigger
          on: push fires on every branch. Restrict to main or release branches unless you need every-branch runs.
+  INFO   14:15 artifact-no-retention
+         upload-artifact has no retention-days. CI artifacts pile up at the repo default (usually 90d). Set 7-14d unless you need long-term retention.
 ```
+
+Above is real output from `examples/bad-workflow/`. Try it: `git clone https://github.com/depmedicdev-byte/ci-doctor && cd ci-doctor && npx ci-doctor examples/bad-workflow`.
 
 ## Why
 
