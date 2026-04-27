@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1 - 2026-04-27
+
+- Fix: `ci-doctor path/to/single.yml` now audits the single file instead
+  of crashing with `ENOTDIR`. Found while dogfooding 0.4.0 against my
+  own repos. Directory invocation behavior is unchanged.
+
 ## 0.4.0 - 2026-04-27
 
 - New rule: `stale-cache-key` (warn). Flags `actions/cache` steps whose

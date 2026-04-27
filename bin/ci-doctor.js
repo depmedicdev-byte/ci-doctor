@@ -102,8 +102,14 @@ function main() {
       const src = fs.readFileSync(args.file, 'utf8');
       findings = auditWorkflow(src, path.relative(process.cwd(), args.file).replace(/\\/g, '/'), args);
     } else {
-      const dir = args.positional[0] || process.cwd();
-      findings = auditDirectory(dir, args);
+      const target = args.positional[0] || process.cwd();
+      const stat = fs.existsSync(target) ? fs.statSync(target) : null;
+      if (stat && stat.isFile()) {
+        const src = fs.readFileSync(target, 'utf8');
+        findings = auditWorkflow(src, path.relative(process.cwd(), target).replace(/\\/g, '/'), args);
+      } else {
+        findings = auditDirectory(target, args);
+      }
     }
   } catch (err) {
     console.error(err && err.stack ? err.stack : String(err));
