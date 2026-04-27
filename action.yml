@@ -1,0 +1,45 @@
+name: ci-doctor
+description: Audit GitHub Actions workflows for waste, cost, and security gaps. Posts a PR comment with findings.
+author: depmedic
+branding:
+  icon: activity
+  color: blue
+inputs:
+  directory:
+    description: Repo root to scan. The action looks for .github/workflows under this path.
+    required: false
+    default: '.'
+  fail-on:
+    description: 'Fail the job at this severity threshold: error | warn | info | never.'
+    required: false
+    default: error
+  comment:
+    description: Post a PR comment with the findings table (true | false).
+    required: false
+    default: 'true'
+  only:
+    description: Comma-separated rule ids to run exclusively.
+    required: false
+    default: ''
+  disable:
+    description: Comma-separated rule ids to skip.
+    required: false
+    default: ''
+  github-token:
+    description: Token used to post PR comments. Defaults to GITHUB_TOKEN.
+    required: false
+    default: ${{ github.token }}
+outputs:
+  error-count:
+    description: Count of error-severity findings.
+  warn-count:
+    description: Count of warn-severity findings.
+  info-count:
+    description: Count of info-severity findings.
+  total:
+    description: Total finding count.
+  findings-json:
+    description: All findings as a JSON string.
+runs:
+  using: node20
+  main: dist/index.js
