@@ -4,6 +4,8 @@ Audit GitHub Actions workflows for waste, cost, and security gaps. CLI and a
 GitHub Action. Posts a comment on every PR with a table of findings and
 fix-it suggestions.
 
+![demo](docs/demo.svg)
+
 ```text
 $ npx ci-doctor examples/bad-workflow
 
