@@ -1,5 +1,7 @@
 # ci-doctor
 
+[![npm](https://img.shields.io/npm/v/ci-doctor.svg)](https://www.npmjs.com/package/ci-doctor) [![ci](https://github.com/depmedicdev-byte/ci-doctor/actions/workflows/test.yml/badge.svg)](https://github.com/depmedicdev-byte/ci-doctor/actions/workflows/test.yml) [![license](https://img.shields.io/npm/l/ci-doctor.svg)](./LICENSE)
+
 Audit GitHub Actions workflows for waste, cost, and security gaps. CLI and a
 GitHub Action. Posts a comment on every PR with a table of findings and
 fix-it suggestions.
