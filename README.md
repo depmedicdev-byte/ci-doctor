@@ -97,6 +97,7 @@ ci-doctor --disable=fetch-depth-zero
 ci-doctor --rules                  # list rules
 ci-doctor --fix                    # auto-apply safe fixes in place (new in 0.2)
 ci-doctor --fix --dry-run          # preview the patched yaml on stdout
+ci-doctor --sarif                  # SARIF 2.1.0 for GitHub Code Scanning (new in 0.3)
 ```
 
 Exit codes: `0` no error-level findings, `1` one or more errors, `2` internal
@@ -121,6 +122,33 @@ specifically is delegated to
 [`pin-actions`](https://www.npmjs.com/package/pin-actions).
 
 Use `--fix --dry-run` first if you want to see the diff before writing.
+
+## GitHub Code Scanning (SARIF)
+
+`--sarif` emits SARIF 2.1.0 you can upload with the official
+`codeql-action/upload-sarif` action. Findings appear as inline PR
+annotations and in the repo's Security tab.
+
+```yaml
+name: ci-doctor
+on:
+  pull_request:
+permissions:
+  contents: read
+  security-events: write
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx ci-doctor --sarif > ci-doctor.sarif || true
+      - uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ci-doctor.sarif
+```
+
+Severity maps `error` -> `error`, `warn` -> `warning`, `info` -> `note`.
 
 ## Rules in v0.1.0
 

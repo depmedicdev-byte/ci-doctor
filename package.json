@@ -1,6 +1,6 @@
 {
   "name": "ci-doctor",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Audit GitHub Actions workflows for waste, cost, and security gaps. Fast, opinionated, CI-friendly.",
   "keywords": [
     "github-actions",

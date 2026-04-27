@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0 - 2026-04-27
+
+- New: `--sarif` output. Emits SARIF 2.1.0, ready for upload to GitHub
+  Code Scanning via `github/codeql-action/upload-sarif@v3`. Findings
+  show up as PR annotations and in the repo Security tab.
+  - Severity mapping: `error` -> `error`, `warn` -> `warning`,
+    `info` -> `note` (the three levels GitHub renders).
+  - Driver advertises every rule with descriptions and default level so
+    Code Scanning can show rule names in the UI.
+  - File paths are normalised to forward slashes for cross-platform
+    consumers.
+
 ## 0.2.0 - 2026-04-27
 
 - New: `--fix` mode. ci-doctor stops being read-only.

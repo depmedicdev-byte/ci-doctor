@@ -7,6 +7,7 @@ const { auditDirectory, auditWorkflow, summarize } = require('../src/index');
 const { renderText } = require('../src/reporters/text');
 const { renderJson } = require('../src/reporters/json');
 const { renderMarkdown } = require('../src/reporters/markdown');
+const { renderSarif } = require('../src/reporters/sarif');
 
 const HELP = `ci-doctor - audit GitHub Actions workflows for waste, cost, security gaps.
 
@@ -15,6 +16,7 @@ Usage:
   ci-doctor --file path/to/workflow.yml
   ci-doctor --json                     machine-readable output
   ci-doctor --markdown                 markdown table (PR comment friendly)
+  ci-doctor --sarif                    SARIF 2.1.0 (GitHub Code Scanning)
   ci-doctor --severity=warn            only warn + error
   ci-doctor --only=rule-a,rule-b       only run named rules
   ci-doctor --disable=rule-x           skip these rules
@@ -43,6 +45,7 @@ function parseArgs(argv) {
     else if (a === '--dry-run') args.dryRun = true;
     else if (a === '--json') args.format = 'json';
     else if (a === '--markdown' || a === '--md') args.format = 'markdown';
+    else if (a === '--sarif') args.format = 'sarif';
     else if (a === '--file') args.file = argv[++i];
     else if (a.startsWith('--file=')) args.file = a.slice(7);
     else if (a.startsWith('--severity=')) args.severity = a.slice(11);
@@ -109,6 +112,7 @@ function main() {
   findings = applySeverityFilter(findings, args.severity);
   if (args.format === 'json') process.stdout.write(renderJson(findings) + '\n');
   else if (args.format === 'markdown') process.stdout.write(renderMarkdown(findings) + '\n');
+  else if (args.format === 'sarif') process.stdout.write(renderSarif(findings) + '\n');
   else process.stdout.write(renderText(findings) + '\n');
   const s = summarize(findings);
   return s.error > 0 ? 1 : 0;
