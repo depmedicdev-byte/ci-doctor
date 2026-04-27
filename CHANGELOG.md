@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.0 - 2026-04-27
+
+- New: `--fix` mode. ci-doctor stops being read-only.
+  - Auto-applies safe, deterministic fixes to your workflows in place.
+  - Currently fixes: `missing-permissions`, `missing-concurrency`,
+    `missing-timeout`, `artifact-no-retention`.
+  - Preserves comments and surrounding formatting (uses
+    `yaml.parseDocument`).
+  - `--fix --dry-run` prints the patched workflow to stdout instead of
+    writing.
+  - `--only=rule-id` restricts which fixes run, same as the audit flag.
+  - Findings ci-doctor cannot safely auto-fix (cache ecosystem,
+    deprecated action major bumps, SHA pinning, cost decisions) keep
+    their warning so a human can decide. SHA pinning is delegated to
+    [`pin-actions`](https://www.npmjs.com/package/pin-actions).
+
 ## 0.1.4 - 2026-04-27
 
 - `pinned-action-sha` rule now points to the new

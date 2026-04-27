@@ -20,6 +20,8 @@ Usage:
   ci-doctor --disable=rule-x           skip these rules
   ci-doctor --rules                    list rules and exit
   ci-doctor --demo                     audit a bundled bad workflow (smoke test)
+  ci-doctor --fix                      auto-apply safe fixes in place
+  ci-doctor --fix --dry-run            print the patched workflow to stdout, don't write
   ci-doctor --version
   ci-doctor --help
 
@@ -37,6 +39,8 @@ function parseArgs(argv) {
     else if (a === '--version' || a === '-V') args.version = true;
     else if (a === '--rules') args.listRules = true;
     else if (a === '--demo') args.demo = true;
+    else if (a === '--fix') args.fix = true;
+    else if (a === '--dry-run') args.dryRun = true;
     else if (a === '--json') args.format = 'json';
     else if (a === '--markdown' || a === '--md') args.format = 'markdown';
     else if (a === '--file') args.file = argv[++i];
@@ -78,6 +82,14 @@ function main() {
     }
     return 0;
   }
+  if (args.fix) {
+    try {
+      return runFix(args);
+    } catch (err) {
+      console.error(err && err.stack ? err.stack : String(err));
+      return 2;
+    }
+  }
   let findings = [];
   try {
     if (args.demo) {
@@ -100,6 +112,59 @@ function main() {
   else process.stdout.write(renderText(findings) + '\n');
   const s = summarize(findings);
   return s.error > 0 ? 1 : 0;
+}
+
+function collectWorkflowFiles(target) {
+  const stat = fs.existsSync(target) ? fs.statSync(target) : null;
+  if (stat && stat.isFile()) return [target];
+  const root = stat ? target : process.cwd();
+  const wfDir = fs.existsSync(path.join(root, '.github', 'workflows'))
+    ? path.join(root, '.github', 'workflows')
+    : root;
+  if (!fs.existsSync(wfDir)) return [];
+  return fs
+    .readdirSync(wfDir)
+    .filter((f) => f.endsWith('.yml') || f.endsWith('.yaml'))
+    .map((f) => path.join(wfDir, f));
+}
+
+function runFix(args) {
+  const { applyFixes } = require('../src/fix');
+  const target = args.file || args.positional[0] || process.cwd();
+  const files = collectWorkflowFiles(target);
+  if (files.length === 0) {
+    console.error('no workflow files found');
+    return 2;
+  }
+  let totalApplied = 0;
+  let totalFiles = 0;
+  for (const file of files) {
+    const src = fs.readFileSync(file, 'utf8');
+    const rel = path.relative(process.cwd(), file).replace(/\\/g, '/');
+    const result = applyFixes(src, rel, { enabled: args.only });
+    if (!result.changed) continue;
+    totalFiles++;
+    totalApplied += result.applied.length;
+    if (args.dryRun) {
+      process.stdout.write(`# --- ${rel} ---\n`);
+      process.stdout.write(result.content);
+      if (!result.content.endsWith('\n')) process.stdout.write('\n');
+    } else {
+      fs.writeFileSync(file, result.content);
+      for (const a of result.applied) {
+        const detail = a.jobId ? ` (job: ${a.jobId})` : a.action ? ` (${a.action})` : '';
+        process.stdout.write(`fixed ${a.ruleId} in ${rel}${detail}\n`);
+      }
+    }
+  }
+  if (totalApplied === 0) {
+    process.stdout.write('no auto-fixable findings.\n');
+    return 0;
+  }
+  if (!args.dryRun) {
+    process.stdout.write(`\napplied ${totalApplied} fix${totalApplied === 1 ? '' : 'es'} across ${totalFiles} file${totalFiles === 1 ? '' : 's'}.\n`);
+  }
+  return 0;
 }
 
 process.exit(main());

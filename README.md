@@ -95,10 +95,32 @@ ci-doctor --severity=warn          # only warn + error
 ci-doctor --only=missing-cache     # one rule
 ci-doctor --disable=fetch-depth-zero
 ci-doctor --rules                  # list rules
+ci-doctor --fix                    # auto-apply safe fixes in place (new in 0.2)
+ci-doctor --fix --dry-run          # preview the patched yaml on stdout
 ```
 
 Exit codes: `0` no error-level findings, `1` one or more errors, `2` internal
 error.
+
+## Auto-fix
+
+`ci-doctor --fix` rewrites your workflows in place to fix the issues that
+have a single safe answer. It uses the document model (preserves comments
+and ordering of existing keys) and only adds:
+
+| Rule | What `--fix` adds |
+| - | - |
+| `missing-permissions` | top-level `permissions: { contents: read }` |
+| `missing-concurrency` | `concurrency: { group: ..., cancel-in-progress: true }` |
+| `missing-timeout` | `timeout-minutes: 15` per job missing it |
+| `artifact-no-retention` | `retention-days: 7` on each `actions/upload-artifact` |
+
+Rules with judgment calls (cache ecosystem, action major-version bumps,
+SHA pinning, runner cost) keep their warning so you decide. SHA pinning
+specifically is delegated to
+[`pin-actions`](https://www.npmjs.com/package/pin-actions).
+
+Use `--fix --dry-run` first if you want to see the diff before writing.
 
 ## Rules in v0.1.0
 
