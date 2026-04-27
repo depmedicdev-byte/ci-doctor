@@ -314,6 +314,116 @@ jobs:
   assert.ok(!ids(f).includes('deprecated-action'));
 });
 
+test('stale-cache-key fires on cache key without hashFiles', () => {
+  const yaml = `on: pull_request
+permissions: { contents: read }
+concurrency: { group: x, cancel-in-progress: true }
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: actions/cache@692973e3d937129bcbf40652eb9f2f61becf3332
+        with:
+          path: node_modules
+          key: my-static-cache-key
+`;
+  const f = audit(yaml);
+  assert.ok(ids(f).includes('stale-cache-key'));
+});
+
+test('stale-cache-key passes when key uses hashFiles', () => {
+  const yaml = `on: pull_request
+permissions: { contents: read }
+concurrency: { group: x, cancel-in-progress: true }
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: actions/cache@692973e3d937129bcbf40652eb9f2f61becf3332
+        with:
+          path: node_modules
+          key: deps-\${{ hashFiles('**/package-lock.json') }}
+`;
+  const f = audit(yaml);
+  assert.ok(!ids(f).includes('stale-cache-key'));
+});
+
+test('fail-fast-true fires on default matrix strategy', () => {
+  const yaml = `on: pull_request
+permissions: { contents: read }
+concurrency: { group: x, cancel-in-progress: true }
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        node: [18, 20]
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+`;
+  const f = audit(yaml);
+  assert.ok(ids(f).includes('fail-fast-true'));
+});
+
+test('fail-fast-true passes when explicitly false', () => {
+  const yaml = `on: pull_request
+permissions: { contents: read }
+concurrency: { group: x, cancel-in-progress: true }
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18, 20]
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+`;
+  const f = audit(yaml);
+  assert.ok(!ids(f).includes('fail-fast-true'));
+});
+
+test('always-run-on-pr fires on docker build with no path filter', () => {
+  const yaml = `on: pull_request
+permissions: { contents: read }
+concurrency: { group: x, cancel-in-progress: true }
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: docker/build-push-action@692973e3d937129bcbf40652eb9f2f61becf3332
+`;
+  const f = audit(yaml);
+  assert.ok(ids(f).includes('always-run-on-pr'));
+});
+
+test('always-run-on-pr passes when paths filter present', () => {
+  const yaml = `on:
+  pull_request:
+    paths:
+      - 'src/**'
+permissions: { contents: read }
+concurrency: { group: x, cancel-in-progress: true }
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: docker/build-push-action@692973e3d937129bcbf40652eb9f2f61becf3332
+`;
+  const f = audit(yaml);
+  assert.ok(!ids(f).includes('always-run-on-pr'));
+});
+
 test('parse error returns parse-error finding', () => {
   const yaml = `on: push
 jobs:

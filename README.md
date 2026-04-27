@@ -156,7 +156,7 @@ jobs:
 
 Severity maps `error` -> `error`, `warn` -> `warning`, `info` -> `note`.
 
-## Rules in v0.1.0
+## Rules
 
 | Rule | Severity | Category |
 | - | - | - |
@@ -168,9 +168,12 @@ Severity maps `error` -> `error`, `warn` -> `warning`, `info` -> `note`.
 | `expensive-runner` | warn | cost |
 | `missing-permissions` | warn | security |
 | `matrix-overcommit` | warn | cost |
+| `stale-cache-key` | warn | cost |
 | `wide-trigger` | info | cost |
 | `artifact-no-retention` | info | cost |
 | `fetch-depth-zero` | info | cost |
+| `fail-fast-true` | info | cost |
+| `always-run-on-pr` | info | cost |
 
 `ci-doctor --rules` prints them with descriptions.
 

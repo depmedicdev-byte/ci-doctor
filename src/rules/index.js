@@ -12,4 +12,7 @@ module.exports = [
   require('./artifact-no-retention'),
   require('./fetch-depth-zero'),
   require('./matrix-overcommit'),
+  require('./stale-cache-key'),
+  require('./fail-fast-true'),
+  require('./always-run-on-pr'),
 ];

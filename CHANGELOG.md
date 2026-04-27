@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.4.0 - 2026-04-27
+
+- New rule: `stale-cache-key` (warn). Flags `actions/cache` steps whose
+  `key` doesn't include `hashFiles()` over a lockfile (or `github.sha` /
+  `github.run_id`). A static cache key never invalidates - it either
+  serves stale deps or grows unbounded.
+- New rule: `fail-fast-true` (info). Flags matrix jobs that don't
+  explicitly set `strategy.fail-fast: false`. Default `fail-fast: true`
+  cancels every sibling cell on the first failure - you still pay for
+  the cancelled minutes and only see one failure per run.
+- New rule: `always-run-on-pr` (info). Flags heavy steps (docker build
+  +push, cypress, playwright, codeql) that run on every PR with no
+  paths filter, no `if:` condition, and no label gate. They run whether
+  or not the PR touched anything that matters to them.
+- Total rule count: 14 (was 11). Same fast scan, three more cost smells.
+
 ## 0.3.3 - 2026-04-27
 
 - README cross-links to the in-browser budget tool at
