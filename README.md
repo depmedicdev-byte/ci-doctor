@@ -122,8 +122,10 @@ A paid Pro tier is in development:
 - Audit history page on GitHub Pages.
 - Private-repo support via license key.
 
-License via Polar at <https://polar.sh/depmedicdev>. Free CLI and Action stay
-free.
+License via Polar:
+[$9/month](https://buy.polar.sh/polar_cl_SUzmX5RCQCV8MJV3dDEBFMu3MGWu2WQhzZ1s02ZhK09)
+or [$39/year](https://buy.polar.sh/polar_cl_JVgKDJuOyHONZmW2GlP8oBoIIME2ZDCxlfP5c3ZA1ZN).
+Free CLI and Action stay free, MIT.
 
 ## Companion
 
