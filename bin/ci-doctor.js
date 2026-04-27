@@ -19,6 +19,7 @@ Usage:
   ci-doctor --only=rule-a,rule-b       only run named rules
   ci-doctor --disable=rule-x           skip these rules
   ci-doctor --rules                    list rules and exit
+  ci-doctor --demo                     audit a bundled bad workflow (smoke test)
   ci-doctor --version
   ci-doctor --help
 
@@ -35,6 +36,7 @@ function parseArgs(argv) {
     if (a === '--help' || a === '-h') args.help = true;
     else if (a === '--version' || a === '-V') args.version = true;
     else if (a === '--rules') args.listRules = true;
+    else if (a === '--demo') args.demo = true;
     else if (a === '--json') args.format = 'json';
     else if (a === '--markdown' || a === '--md') args.format = 'markdown';
     else if (a === '--file') args.file = argv[++i];
@@ -78,7 +80,10 @@ function main() {
   }
   let findings = [];
   try {
-    if (args.file) {
+    if (args.demo) {
+      const demoDir = path.join(__dirname, '..', 'examples', 'bad-workflow');
+      findings = auditDirectory(demoDir, args);
+    } else if (args.file) {
       const src = fs.readFileSync(args.file, 'utf8');
       findings = auditWorkflow(src, path.relative(process.cwd(), args.file).replace(/\\/g, '/'), args);
     } else {
