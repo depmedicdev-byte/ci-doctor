@@ -26,9 +26,9 @@ module.exports = {
           makeFinding(
             module.exports,
             parsed,
-            `${step.uses} is not SHA-pinned. Mutable refs let upstream replace the action under you. Pin to a 40-char commit SHA and add a comment with the version.`,
+            `${step.uses} is not SHA-pinned. Mutable refs let upstream replace the action under you. Pin to a 40-char commit SHA and add a comment with the version. Run \`npx pin-actions\` to do all pins automatically.`,
             ['jobs', jobId, 'steps', i, 'uses'],
-            { suggestion: `uses: ${step.uses.slice(0, at)}@<sha>  # ${ref}` }
+            { suggestion: `uses: ${step.uses.slice(0, at)}@<sha>  # ${ref}\n# or: npx pin-actions` }
           )
         );
       });

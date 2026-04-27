@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.4 - 2026-04-27
+
+- `pinned-action-sha` rule now points to the new
+  [`pin-actions`](https://www.npmjs.com/package/pin-actions) free CLI in
+  the suggestion. ci-doctor flags the issue; pin-actions does the
+  pinning. Both MIT, both run in <2 sec.
+
 ## 0.1.3 - 2026-04-27
 
 - README ships an animated terminal demo (svg) so the GitHub page shows
