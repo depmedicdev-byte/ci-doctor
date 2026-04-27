@@ -4,6 +4,35 @@ const { summarize } = require('../index');
 
 const SEV_LABEL = { error: 'ERROR', warn: 'WARN ', info: 'INFO ' };
 
+const COST_RULES = new Set([
+  'missing-concurrency',
+  'missing-timeout',
+  'missing-cache',
+  'expensive-runner',
+  'matrix-overcommit',
+  'artifact-no-retention',
+  'fetch-depth-zero',
+  'wide-trigger',
+]);
+
+function renderFooter(findings) {
+  const costCount = findings.filter((f) => COST_RULES.has(f.ruleId)).length;
+  const lines = [];
+  lines.push('');
+  lines.push('-'.repeat(60));
+  if (costCount > 0) {
+    lines.push(`${costCount} of these are cost issues. Run \`npx ci-doctor --fix\` to`);
+    lines.push('apply the safe ones, then `npx gha-budget` to price what is left.');
+  } else {
+    lines.push('Run `npx ci-doctor --fix` to auto-apply the safe fixes.');
+  }
+  lines.push('');
+  lines.push('Want the full pattern set (30 patterns + 5 paste-ready workflows)?');
+  lines.push('Cut Your CI Bill cookbook, $19 one-time:');
+  lines.push('https://buy.polar.sh/polar_cl_E2HGFeAVxJ64gU0Tv0qGwAueuxvhuq6A0pjhE4BWTyD');
+  return lines.join('\n');
+}
+
 function renderText(findings, options = {}) {
   const lines = [];
   const s = summarize(findings);
@@ -34,6 +63,7 @@ function renderText(findings, options = {}) {
     }
     lines.push('');
   }
+  if (options.footer !== false) lines.push(renderFooter(findings));
   return lines.join('\n').trimEnd();
 }
 

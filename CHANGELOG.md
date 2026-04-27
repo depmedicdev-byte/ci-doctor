@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.1 - 2026-04-27
+
+- Text reporter ends with a contextual next-step block: counts cost-class
+  findings, points to `--fix` and `gha-budget`, and surfaces the cookbook
+  link. Most users see the text reporter; previously it had no
+  actionable footer.
+
 ## 0.3.0 - 2026-04-27
 
 - New: `--sarif` output. Emits SARIF 2.1.0, ready for upload to GitHub
