@@ -6,6 +6,10 @@ Audit GitHub Actions workflows for waste, cost, and security gaps. CLI and a
 GitHub Action. Posts a comment on every PR with a table of findings and
 fix-it suggestions.
 
+> Try it without installing: paste a workflow into the
+> [in-browser audit](https://depmedicdev-byte.github.io/audit.html). Same
+> rules engine, runs entirely client-side, nothing leaves your tab.
+
 ![demo](docs/demo.svg)
 
 ```text
