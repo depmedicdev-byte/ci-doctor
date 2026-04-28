@@ -30,6 +30,12 @@ function renderFooter(findings) {
   lines.push('Want the full pattern set (30 patterns + 5 paste-ready workflows)?');
   lines.push('Cut Your CI Bill cookbook, $19 one-time:');
   lines.push('https://buy.polar.sh/polar_cl_E2HGFeAVxJ64gU0Tv0qGwAueuxvhuq6A0pjhE4BWTyD');
+  const hasExpensive = findings.some((f) => f.ruleId === 'expensive-runner');
+  if (hasExpensive) {
+    lines.push('');
+    lines.push('Cheaper third-party runners compared (BuildJet, Namespace,');
+    lines.push('Ubicloud, RunsOn, WarpBuild, Blacksmith): https://depmedicdev-byte.github.io/runners.html');
+  }
   return lines.join('\n');
 }
 
@@ -59,6 +65,9 @@ function renderText(findings, options = {}) {
       if (f.suggestion && options.verbose !== false) {
         const sug = String(f.suggestion).split('\n').map((l) => '         | ' + l).join('\n');
         lines.push(sug);
+      }
+      if (f.tip && options.verbose !== false) {
+        lines.push(`         tip: ${f.tip}`);
       }
     }
     lines.push('');

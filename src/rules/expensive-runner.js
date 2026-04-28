@@ -29,14 +29,18 @@ module.exports = {
         .join('\n');
       const hasHint = PLATFORM_HINTS.some((re) => re.test(allRun) || re.test(allUses));
       if (hasHint) continue;
-      const ratio = runners.some((r) => typeof r === 'string' && r.startsWith('macos-')) ? '10x' : '2x';
+      const isMac = runners.some((r) => typeof r === 'string' && r.startsWith('macos-'));
+      const ratio = isMac ? '10x' : '2x';
+      const tip = isMac
+        ? "If you do need a non-Linux runner for legitimate reasons, third-party providers (BuildJet, Namespace, Ubicloud, RunsOn) cut even windows-latest costs ~50%. See https://depmedicdev-byte.github.io/runners.html for the comparison."
+        : "Or keep windows-latest but switch the provider: BuildJet / Namespace / Ubicloud cut windows-latest minutes ~50% with a one-line runs-on swap. https://depmedicdev-byte.github.io/runners.html";
       findings.push(
         makeFinding(
           module.exports,
           parsed,
           `Job '${id}' runs on ${runners.join(', ')} but has no platform-specific commands detected. ubuntu-latest costs ${ratio} less.`,
           ['jobs', id, 'runs-on'],
-          { suggestion: 'runs-on: ubuntu-latest', costImpact: 'high' }
+          { suggestion: 'runs-on: ubuntu-latest', costImpact: 'high', tip }
         )
       );
     }

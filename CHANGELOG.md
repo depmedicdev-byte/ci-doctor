@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.2 - 2026-04-28
+
+- Text reporter: when `expensive-runner` triggers, finding now includes a
+  `tip:` pointing at the new comparison page of cheaper third-party runner
+  providers (BuildJet, Namespace, Ubicloud, RunsOn, WarpBuild, Blacksmith).
+- Footer also surfaces the comparison page when at least one
+  `expensive-runner` finding fired in the run.
+- No rule changes, no SARIF/JSON changes (the tip is text-only). All 40
+  existing tests still pass.
+
 ## 0.4.1 - 2026-04-27
 
 - Fix: `ci-doctor path/to/single.yml` now audits the single file instead
