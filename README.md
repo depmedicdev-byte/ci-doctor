@@ -1,5 +1,8 @@
 # ci-doctor
 
+
+[![Sponsor](https://img.shields.io/badge/sponsor-depmedic-ea4aaa?logo=githubsponsors)](https://depmedicdev-byte.github.io/sponsor.html)
+
 [![npm](https://img.shields.io/npm/v/ci-doctor.svg)](https://www.npmjs.com/package/ci-doctor) [![ci](https://github.com/depmedicdev-byte/ci-doctor/actions/workflows/test.yml/badge.svg)](https://github.com/depmedicdev-byte/ci-doctor/actions/workflows/test.yml) [![license](https://img.shields.io/npm/l/ci-doctor.svg)](./LICENSE)
 
 Audit GitHub Actions workflows for waste, cost, and security gaps. CLI and a
