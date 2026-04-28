@@ -31704,6 +31704,160 @@ var require_matrix_overcommit = __commonJS({
   }
 });
 
+// src/rules/stale-cache-key.js
+var require_stale_cache_key = __commonJS({
+  "src/rules/stale-cache-key.js"(exports2, module2) {
+    "use strict";
+    var { jobs, stepsOf, makeFinding } = require_util8();
+    module2.exports = {
+      id: "stale-cache-key",
+      severity: "warn",
+      description: "actions/cache step has a key that does not include a lockfile hash, so the cache never invalidates when deps change.",
+      category: "cost",
+      check(parsed) {
+        const findings = [];
+        for (const { id: jobId, job } of jobs(parsed)) {
+          stepsOf(job).forEach((step, i) => {
+            if (!step || typeof step.uses !== "string") return;
+            if (!step.uses.startsWith("actions/cache@")) return;
+            const w = step.with || {};
+            const key = typeof w.key === "string" ? w.key : "";
+            if (!key) return;
+            const hashesLockfile = /hashFiles\s*\(/.test(key);
+            const hashesCommitSha = /\$\{\{\s*github\.sha\s*\}\}/.test(key);
+            const hashesRunId = /\$\{\{\s*github\.run_id\s*\}\}/.test(key);
+            if (hashesLockfile || hashesCommitSha || hashesRunId) return;
+            findings.push(
+              makeFinding(
+                module2.exports,
+                parsed,
+                `cache key '${key}' has no hashFiles() over a lockfile. Cache will never refresh when dependencies change, leading to stale builds or unbounded cache growth.`,
+                ["jobs", jobId, "steps", i, "with", "key"],
+                {
+                  suggestion: "key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json') }}",
+                  costImpact: "medium"
+                }
+              )
+            );
+          });
+        }
+        return findings;
+      }
+    };
+  }
+});
+
+// src/rules/fail-fast-true.js
+var require_fail_fast_true = __commonJS({
+  "src/rules/fail-fast-true.js"(exports2, module2) {
+    "use strict";
+    var { jobs, makeFinding } = require_util8();
+    module2.exports = {
+      id: "fail-fast-true",
+      severity: "info",
+      description: "matrix job uses default fail-fast: true, which kills sibling jobs on first failure - wasting their already-billed minutes and hiding parallel failures.",
+      category: "cost",
+      check(parsed) {
+        const findings = [];
+        for (const { id: jobId, job } of jobs(parsed)) {
+          const strategy = job && job.strategy;
+          if (!strategy || typeof strategy !== "object") continue;
+          const matrix = strategy.matrix;
+          if (!matrix || typeof matrix !== "object") continue;
+          if (strategy["fail-fast"] === false) continue;
+          findings.push(
+            makeFinding(
+              module2.exports,
+              parsed,
+              `matrix job '${jobId}' has the default fail-fast: true. The first cell that fails cancels every sibling - you still pay for the cancelled minutes, and you only see one failure per run instead of all of them.`,
+              ["jobs", jobId, "strategy"],
+              {
+                suggestion: "strategy:\n  fail-fast: false\n  matrix:\n    ...",
+                costImpact: "low"
+              }
+            )
+          );
+        }
+        return findings;
+      }
+    };
+  }
+});
+
+// src/rules/always-run-on-pr.js
+var require_always_run_on_pr = __commonJS({
+  "src/rules/always-run-on-pr.js"(exports2, module2) {
+    "use strict";
+    var { jobs, stepsOf, makeFinding } = require_util8();
+    var HEAVY_PATTERNS = [
+      { rx: /^docker\/build-push-action/, label: "docker build+push" },
+      { rx: /^docker\/build-action/, label: "docker build" },
+      { rx: /^cypress-io\/github-action/, label: "cypress e2e" },
+      { rx: /^playwright/i, label: "playwright e2e" },
+      { rx: /^microsoft\/playwright/i, label: "playwright e2e" },
+      { rx: /^github\/codeql-action/, label: "codeql analysis" }
+    ];
+    function triggers(parsed) {
+      const on = parsed.data.on;
+      if (!on) return /* @__PURE__ */ new Set();
+      if (typeof on === "string") return /* @__PURE__ */ new Set([on]);
+      if (Array.isArray(on)) return new Set(on);
+      return new Set(Object.keys(on));
+    }
+    function hasPathFilter(parsed) {
+      const on = parsed.data.on;
+      if (!on || typeof on !== "object" || Array.isArray(on)) return false;
+      for (const trig of ["pull_request", "pull_request_target", "push"]) {
+        const cfg = on[trig];
+        if (cfg && typeof cfg === "object" && (cfg.paths || cfg["paths-ignore"])) {
+          return true;
+        }
+      }
+      return false;
+    }
+    function gatedByCondition(job, step) {
+      const ifs = [job && job.if, step && step.if].filter(Boolean).join(" ");
+      if (!ifs) return false;
+      return /github\.event|labels|contains|paths|files_changed/i.test(ifs);
+    }
+    module2.exports = {
+      id: "always-run-on-pr",
+      severity: "info",
+      description: "a heavy step (docker build, e2e, codeql) runs on every PR with no paths filter, no label gate, and no condition. It runs whether or not the PR touched anything that matters to it.",
+      category: "cost",
+      check(parsed) {
+        const trig = triggers(parsed);
+        const isPrTriggered = trig.has("pull_request") || trig.has("pull_request_target");
+        if (!isPrTriggered) return [];
+        if (hasPathFilter(parsed)) return [];
+        const findings = [];
+        for (const { id: jobId, job } of jobs(parsed)) {
+          stepsOf(job).forEach((step, i) => {
+            if (!step || typeof step.uses !== "string") return;
+            const base = step.uses.split("@")[0];
+            const match = HEAVY_PATTERNS.find((h) => h.rx.test(base));
+            if (!match) return;
+            if (gatedByCondition(job, step)) return;
+            findings.push(
+              makeFinding(
+                module2.exports,
+                parsed,
+                `${match.label} step in job '${jobId}' runs on every PR with no paths filter or condition. Consider gating it on changed files or a label.`,
+                ["jobs", jobId, "steps", i, "uses"],
+                {
+                  suggestion: "on:\n  pull_request:\n    paths:\n      - 'src/**'   # or a label gate via if: contains(github.event.pull_request.labels.*.name, 'run-e2e')",
+                  costImpact: "high"
+                }
+              )
+            );
+          });
+        }
+        return findings;
+      }
+    };
+  }
+});
+
 // src/rules/index.js
 var require_rules = __commonJS({
   "src/rules/index.js"(exports2, module2) {
@@ -31719,7 +31873,10 @@ var require_rules = __commonJS({
       require_missing_permissions(),
       require_artifact_no_retention(),
       require_fetch_depth_zero(),
-      require_matrix_overcommit()
+      require_matrix_overcommit(),
+      require_stale_cache_key(),
+      require_fail_fast_true(),
+      require_always_run_on_pr()
     ];
   }
 });
