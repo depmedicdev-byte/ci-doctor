@@ -424,6 +424,114 @@ jobs:
   assert.ok(!ids(f).includes('always-run-on-pr'));
 });
 
+test('docker-no-pin fires on container with floating tag', () => {
+  const yaml = `on: push
+permissions: { contents: read }
+concurrency: { group: x, cancel-in-progress: true }
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    container:
+      image: node:22
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+`;
+  const f = audit(yaml);
+  assert.ok(ids(f).includes('docker-no-pin'), 'expected docker-no-pin, got: ' + ids(f).join(','));
+});
+
+test('docker-no-pin passes when image is digest-pinned', () => {
+  const yaml = `on: push
+permissions: { contents: read }
+concurrency: { group: x, cancel-in-progress: true }
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    container:
+      image: node@sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+`;
+  const f = audit(yaml);
+  assert.ok(!ids(f).includes('docker-no-pin'));
+});
+
+test('docker-no-pin fires on services with floating tag', () => {
+  const yaml = `on: push
+permissions: { contents: read }
+concurrency: { group: x, cancel-in-progress: true }
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      db:
+        image: postgres:16
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+`;
+  const f = audit(yaml);
+  assert.ok(ids(f).includes('docker-no-pin'));
+});
+
+test('service-no-healthcheck fires on postgres without options', () => {
+  const yaml = `on: push
+permissions: { contents: read }
+concurrency: { group: x, cancel-in-progress: true }
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      db:
+        image: postgres@sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+`;
+  const f = audit(yaml);
+  assert.ok(ids(f).includes('service-no-healthcheck'), 'expected service-no-healthcheck, got: ' + ids(f).join(','));
+});
+
+test('service-no-healthcheck passes with --health-cmd in options', () => {
+  const yaml = `on: push
+permissions: { contents: read }
+concurrency: { group: x, cancel-in-progress: true }
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      db:
+        image: postgres@sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+`;
+  const f = audit(yaml);
+  assert.ok(!ids(f).includes('service-no-healthcheck'));
+});
+
+test('service-no-healthcheck ignores unknown service images', () => {
+  const yaml = `on: push
+permissions: { contents: read }
+concurrency: { group: x, cancel-in-progress: true }
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      api:
+        image: ghcr.io/myorg/myapi@sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+`;
+  const f = audit(yaml);
+  assert.ok(!ids(f).includes('service-no-healthcheck'));
+});
+
 test('parse error returns parse-error finding', () => {
   const yaml = `on: push
 jobs:

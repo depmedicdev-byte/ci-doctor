@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.5.0 - 2026-04-28
+
+Two new rules. Now 16 total. All 46 tests green.
+
+- **`docker-no-pin`** (warn, security): flags `container.image`,
+  `services.<name>.image`, and `uses: docker://<ref>` when the image
+  reference is a floating tag (e.g. `:latest`, `:node`, `:22`,
+  `:alpine`) instead of a digest. A silent registry update can change
+  the build out from under you. Suggestion: pin to
+  `image@sha256:<digest>`.
+- **`service-no-healthcheck`** (warn, cost): flags well-known service
+  containers (postgres, mysql, mariadb, redis, mongo, rabbitmq, kafka,
+  elasticsearch, opensearch, minio, memcached) that don't have an
+  `--health-cmd` in their `options:` block. Test steps that race the
+  service start fail intermittently and burn re-run minutes.
+  Suggestion: full multi-line `options:` example with health flags.
+
+No breaking changes. Existing 14 rules are unchanged. SARIF and
+markdown reporters automatically include the two new rules.
+
 ## 0.4.2 - 2026-04-28
 
 - Text reporter: when `expensive-runner` triggers, finding now includes a

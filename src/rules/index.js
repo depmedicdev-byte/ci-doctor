@@ -15,4 +15,6 @@ module.exports = [
   require('./stale-cache-key'),
   require('./fail-fast-true'),
   require('./always-run-on-pr'),
+  require('./docker-no-pin'),
+  require('./service-no-healthcheck'),
 ];
