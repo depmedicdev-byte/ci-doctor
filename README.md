@@ -80,7 +80,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - uses: depmedicdev-byte/ci-doctor@v0.1.0
+      - uses: depmedicdev-byte/ci-doctor@v1
         with:
           fail-on: error
           comment: 'true'
