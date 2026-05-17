@@ -178,7 +178,7 @@ Severity maps `error` -> `error`, `warn` -> `warning`, `info` -> `note`.
 | `fail-fast-true` | info | cost |
 | `always-run-on-pr` | info | cost |
 
-`ci-doctor --rules` prints them with descriptions.
+`ci-doctor --rules` prints them with descriptions. For the rationale, examples, suggested fixes, and source links for every rule, see [docs/rules.md](docs/rules.md).
 
 ## Action inputs
 
